@@ -132,13 +132,30 @@ npm start
 - 더 많은 여행지와 여행 스타일 추가
 - 실시간 항공권 가격 추적
 - 개인 맞춤형 여행 추천
-- 모바일 앱 버전
 
 ---
 
 ### Screenshots | 스크린샷
 
-[Screenshots will be added here | 스크린샷이 여기에 추가될 예정입니다]
+<div align="center">
+  <h4>Main Dashboard | 메인 대시보드</h4>
+  <img src="screen.png" alt="Travel Savings Planner Dashboard" width="100%" style="max-width: 1200px; border-radius: 8px; box-shadow: 0 4px 8px rgba(0,0,0,0.1);" />
+</div>
+
+#### Features Shown in Screenshot | 스크린샷에 표시된 기능
+🇺🇸
+- Interactive trip style selection
+- Dynamic flight price trends chart
+- Detailed cost breakdown
+- TOSS integration for savings goals
+- Currency selection (USD/KRW)
+
+🇰🇷
+- 대화형 여행 스타일 선택
+- 실시간 항공권 가격 동향 차트
+- 상세 비용 분석
+- TOSS 연동 저축 목표 설정
+- 통화 선택 (USD/KRW)
 
 ---
 
