@@ -7,7 +7,8 @@
 <a name="english"></a>
 ## 🌏 Travel Savings Planner
 
-A smart travel savings calculator that helps you plan and save for your next trip. Designed to integrate with TOSS for automated savings goals.
+The journey of travel begins with saving money. This service helps you calculate exactly how much you need for your trip and assists with actual savings.
+We look forward to this service being added to the TOSS app service in the future.
 
 ### Features
 
@@ -64,7 +65,8 @@ npm start
 <a name="korean"></a>
 ## 🌏 여행 저축 플래너
 
-다음 여행을 위한 저축을 계획하고 관리할 수 있는 스마트 여행 저축 계산기입니다. TOSS와 연동하여 자동 저축 목표를 설정할 수 있도록 설계되었습니다.
+돈을 모으는 것으로 여행의 여정은 시작합니다. 여행을 위해 정확히 얼마가 필요한지 계산해주고 실제 저축을 도와주는 서비스 입니다. 
+향후 토스 앱 서비스에 해당 서비스가 추가되는 것을 기대합니다. 
 
 ### 주요 기능
 
@@ -121,17 +123,16 @@ npm start
 ### Future Updates | 향후 업데이트
 
 🇺🇸 **Upcoming Features**
-- TOSS API integration for automatic savings
-- More destinations and travel styles
+- Building a real savings system through TOSS API integration
+- Adding more destinations and travel styles
 - Real-time flight price tracking
-- Personalized travel recommendations
-- Mobile app version
+- Adding personalized travel option choices
 
 🇰🇷 **예정된 기능**
-- TOSS API 연동을 통한 자동 저축
+- TOSS API 연동을 통한 실제 저축 시스템 구축
 - 더 많은 여행지와 여행 스타일 추가
 - 실시간 항공권 가격 추적
-- 개인 맞춤형 여행 추천
+- 개인 맞춤형 여행 옵션 선택지 추가
 
 ---
 
@@ -158,7 +159,3 @@ npm start
 - 통화 선택 (USD/KRW)
 
 ---
-
-### License | 라이선스
-
-MIT License | MIT 라이선스 
