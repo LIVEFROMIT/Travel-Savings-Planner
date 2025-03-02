@@ -1,13 +1,13 @@
 {
   "files": {
     "main.css": "/Travel-Savings-Planner/static/css/main.3fa70f79.css",
-    "main.js": "/Travel-Savings-Planner/static/js/main.c96a7d5e.js",
+    "main.js": "/Travel-Savings-Planner/static/js/main.c05e6187.js",
     "index.html": "/Travel-Savings-Planner/index.html",
     "main.3fa70f79.css.map": "/Travel-Savings-Planner/static/css/main.3fa70f79.css.map",
-    "main.c96a7d5e.js.map": "/Travel-Savings-Planner/static/js/main.c96a7d5e.js.map"
+    "main.c05e6187.js.map": "/Travel-Savings-Planner/static/js/main.c05e6187.js.map"
   },
   "entrypoints": [
     "static/css/main.3fa70f79.css",
-    "static/js/main.c96a7d5e.js"
+    "static/js/main.c05e6187.js"
   ]
 }
