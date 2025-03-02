@@ -30,8 +30,13 @@ import AccountBalanceWalletIcon from '@mui/icons-material/AccountBalanceWallet';
 import AttachMoneyIcon from '@mui/icons-material/AttachMoney';
 import FlightPriceTrends from './FlightPriceTrends';
 
-// Exchange rate (1 USD to KRW)
-const KRW_EXCHANGE_RATE = 1315;
+// Currency formatter
+const formatCurrency = (amount) => {
+  return new Intl.NumberFormat('en-US', {
+    style: 'currency',
+    currency: 'USD',
+  }).format(amount);
+};
 
 const TRIP_STYLES = {
   budget: {
@@ -66,28 +71,12 @@ const TRIP_STYLES = {
   },
 };
 
-// Currency formatter
-const formatCurrency = (amount, currency) => {
-  if (currency === 'KRW') {
-    const krwAmount = Math.round(amount * KRW_EXCHANGE_RATE);
-    return new Intl.NumberFormat('ko-KR', {
-      style: 'currency',
-      currency: 'KRW',
-      maximumFractionDigits: 0,
-    }).format(krwAmount);
-  }
-  return new Intl.NumberFormat('en-US', {
-    style: 'currency',
-    currency: 'USD',
-  }).format(amount);
-};
-
 const MOCK_TRAVEL_COSTS = {
   'New York': {
-    flight: 1200,
-    accommodation: 200,
-    food: 60,
-    activities: 100,
+    flight: 1200,    // USD
+    accommodation: 200, // USD per night
+    food: 60,        // USD per day
+    activities: 100,  // USD per day
   },
   'Paris': {
     flight: 1500,
@@ -101,12 +90,19 @@ const MOCK_TRAVEL_COSTS = {
     food: 40,
     activities: 70,
   },
+  'Seoul': {
+    flight: 1600,
+    accommodation: 130,
+    food: 35,
+    activities: 60,
+  },
 };
 
 const DESTINATIONS = Object.keys(MOCK_TRAVEL_COSTS);
 
 const TravelPlanner = () => {
   const [destination, setDestination] = useState('');
+  const [fromLocation, setFromLocation] = useState('Seoul');
   const [arrivalDate, setArrivalDate] = useState(null);
   const [departureDate, setDepartureDate] = useState(null);
   const [showResults, setShowResults] = useState(false);
@@ -114,14 +110,7 @@ const TravelPlanner = () => {
   const [dateError, setDateError] = useState('');
   const [openDialog, setOpenDialog] = useState(false);
   const [savingsSet, setSavingsSet] = useState(false);
-  const [currency, setCurrency] = useState('USD');
   const [tripStyle, setTripStyle] = useState('comfort');
-
-  const handleCurrencyChange = (event, newCurrency) => {
-    if (newCurrency !== null) {
-      setCurrency(newCurrency);
-    }
-  };
 
   const handleTripStyleChange = (event, newStyle) => {
     if (newStyle !== null) {
@@ -209,47 +198,60 @@ const TravelPlanner = () => {
           <Typography variant="h4" component="h1" gutterBottom sx={{ mb: 0 }}>
             Travel Savings Planner
           </Typography>
-          <ToggleButtonGroup
-            value={currency}
-            exclusive
-            onChange={handleCurrencyChange}
-            aria-label="currency selection"
-            size="small"
-          >
-            <ToggleButton value="USD" aria-label="USD">
-              USD
-            </ToggleButton>
-            <ToggleButton value="KRW" aria-label="KRW">
-              KRW
-            </ToggleButton>
-          </ToggleButtonGroup>
         </Box>
 
         <form onSubmit={handleSubmit}>
           <Stack spacing={3}>
-            <Autocomplete
-              options={DESTINATIONS}
-              value={destination}
-              onChange={(_, newValue) => setDestination(newValue)}
-              renderInput={(params) => (
-                <TextField
-                  {...params}
-                  label="Destination"
-                  placeholder="e.g., New York"
-                  InputProps={{
-                    ...params.InputProps,
-                    startAdornment: (
-                      <>
-                        <InputAdornment position="start">
-                          <FlightTakeoffIcon color="primary" />
-                        </InputAdornment>
-                        {params.InputProps.startAdornment}
-                      </>
-                    ),
-                  }}
-                />
-              )}
-            />
+            <Box sx={{ display: 'flex', gap: 2 }}>
+              <Autocomplete
+                options={DESTINATIONS}
+                value={fromLocation}
+                onChange={(_, newValue) => setFromLocation(newValue)}
+                sx={{ flex: 1 }}
+                renderInput={(params) => (
+                  <TextField
+                    {...params}
+                    label="From"
+                    placeholder="e.g., Seoul"
+                    InputProps={{
+                      ...params.InputProps,
+                      startAdornment: (
+                        <>
+                          <InputAdornment position="start">
+                            <FlightTakeoffIcon color="primary" sx={{ transform: 'rotate(-45deg)' }} />
+                          </InputAdornment>
+                          {params.InputProps.startAdornment}
+                        </>
+                      ),
+                    }}
+                  />
+                )}
+              />
+              <Autocomplete
+                options={DESTINATIONS.filter(dest => dest !== fromLocation)}
+                value={destination}
+                onChange={(_, newValue) => setDestination(newValue)}
+                sx={{ flex: 1 }}
+                renderInput={(params) => (
+                  <TextField
+                    {...params}
+                    label="To"
+                    placeholder="e.g., New York"
+                    InputProps={{
+                      ...params.InputProps,
+                      startAdornment: (
+                        <>
+                          <InputAdornment position="start">
+                            <FlightTakeoffIcon color="primary" />
+                          </InputAdornment>
+                          {params.InputProps.startAdornment}
+                        </>
+                      ),
+                    }}
+                  />
+                )}
+              />
+            </Box>
 
             <Box sx={{ display: 'flex', gap: 2 }}>
               <LocalizationProvider dateAdapter={AdapterDateFns}>
@@ -338,7 +340,7 @@ const TravelPlanner = () => {
         </form>
       </Paper>
 
-      {destination && <FlightPriceTrends destination={destination} currency={currency} tripStyle={tripStyle} />}
+      {destination && <FlightPriceTrends destination={destination} fromLocation={fromLocation} tripStyle={tripStyle} />}
 
       {showResults && savingsData && (
         <Card elevation={3}>
@@ -356,7 +358,7 @@ const TravelPlanner = () => {
 
               <Box>
                 <Typography variant="h4" color="primary" gutterBottom>
-                  {formatCurrency(savingsData.monthlySavings, currency)}/month
+                  {formatCurrency(savingsData.monthlySavings)}/month
                 </Typography>
                 <Typography variant="body2" color="text.secondary">
                   for {savingsData.monthsToSave} months until your trip
@@ -372,7 +374,7 @@ const TravelPlanner = () => {
                     Duration: {savingsData.stayDuration} days
                   </Typography>
                   <Typography>
-                    Total Cost: {formatCurrency(savingsData.totalCost, currency)}
+                    Total Cost: {formatCurrency(savingsData.totalCost)}
                   </Typography>
                 </Stack>
               </Box>
@@ -381,16 +383,16 @@ const TravelPlanner = () => {
                 <Typography variant="h6" gutterBottom>Cost Breakdown:</Typography>
                 <Stack spacing={1} sx={{ pl: 2 }}>
                   <Typography>
-                    Flight: {formatCurrency(savingsData.breakdown.flight, currency)}
+                    Flight: {formatCurrency(savingsData.breakdown.flight)}
                   </Typography>
                   <Typography>
-                    Accommodation ({savingsData.stayDuration} nights): {formatCurrency(savingsData.breakdown.accommodation, currency)}
+                    Accommodation ({savingsData.stayDuration} nights): {formatCurrency(savingsData.breakdown.accommodation)}
                   </Typography>
                   <Typography>
-                    Food ({savingsData.stayDuration} days): {formatCurrency(savingsData.breakdown.food, currency)}
+                    Food ({savingsData.stayDuration} days): {formatCurrency(savingsData.breakdown.food)}
                   </Typography>
                   <Typography>
-                    Activities: {formatCurrency(savingsData.breakdown.activities, currency)}
+                    Activities: {formatCurrency(savingsData.breakdown.activities)}
                   </Typography>
                 </Stack>
               </Box>
@@ -433,8 +435,8 @@ const TravelPlanner = () => {
           <DialogContentText>
             You're about to set up an automatic savings goal in TOSS for your {TRIP_STYLES[tripStyle].label.toLowerCase()} trip to {destination}.
             <Box component="ul" sx={{ mt: 2, mb: 1 }}>
-              <li>Monthly savings: {formatCurrency(savingsData?.monthlySavings, currency)}</li>
-              <li>Total goal: {formatCurrency(savingsData?.totalCost, currency)}</li>
+              <li>Monthly savings: {formatCurrency(savingsData?.monthlySavings)}</li>
+              <li>Total goal: {formatCurrency(savingsData?.totalCost)}</li>
               <li>Target date: {arrivalDate ? format(arrivalDate, 'MMMM dd, yyyy') : ''}</li>
             </Box>
             TOSS will help you automatically save this amount each month.

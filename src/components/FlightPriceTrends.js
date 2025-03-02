@@ -12,9 +12,6 @@ import {
 import { Paper, Typography, Box } from '@mui/material';
 import { format, addMonths } from 'date-fns';
 
-// Exchange rate (1 USD to KRW)
-const KRW_EXCHANGE_RATE = 1315;
-
 const TRIP_STYLES = {
   budget: {
     label: 'Budget',
@@ -30,29 +27,47 @@ const TRIP_STYLES = {
   },
 };
 
-// Currency formatter
-const formatCurrency = (amount, currency) => {
-  if (currency === 'KRW') {
-    const krwAmount = Math.round(amount * KRW_EXCHANGE_RATE);
-    return new Intl.NumberFormat('ko-KR', {
-      style: 'currency',
-      currency: 'KRW',
-      maximumFractionDigits: 0,
-    }).format(krwAmount);
+// Base flight prices for routes (USD)
+const ROUTE_PRICES = {
+  'Seoul': {
+    'New York': 1200,
+    'Paris': 1100,
+    'Tokyo': 400,
+    'Seoul': 0
+  },
+  'New York': {
+    'Seoul': 1200,
+    'Paris': 800,
+    'Tokyo': 1400,
+    'New York': 0
+  },
+  'Paris': {
+    'Seoul': 1100,
+    'New York': 800,
+    'Tokyo': 1200,
+    'Paris': 0
+  },
+  'Tokyo': {
+    'Seoul': 400,
+    'New York': 1400,
+    'Paris': 1200,
+    'Tokyo': 0
   }
+};
+
+// Currency formatter
+const formatCurrency = (value) => {
   return new Intl.NumberFormat('en-US', {
     style: 'currency',
     currency: 'USD',
-  }).format(amount);
+    minimumFractionDigits: 0,
+    maximumFractionDigits: 0,
+  }).format(value);
 };
 
 // Mock data generator for flight prices
-const generateFlightPriceData = (destination, currency, tripStyle = 'comfort') => {
-  const basePrice = {
-    'New York': 1200,
-    'Paris': 1500,
-    'Tokyo': 1800
-  }[destination] || 1200;
+const generateFlightPriceData = (destination, fromLocation, tripStyle = 'comfort') => {
+  const basePrice = ROUTE_PRICES[fromLocation]?.[destination] || 1200;
 
   const seasonalMultipliers = {
     'New York': {
@@ -88,22 +103,18 @@ const generateFlightPriceData = (destination, currency, tripStyle = 'comfort') =
     const date = addMonths(today, i);
     const month = date.getMonth();
     
-    // Determine season multiplier
     let seasonMultiplier;
-    if (month >= 5 && month <= 7) seasonMultiplier = seasonalMultipliers.summer;      // Summer
-    else if (month >= 11 || month <= 1) seasonMultiplier = seasonalMultipliers.winter; // Winter
-    else if (month >= 2 && month <= 4) seasonMultiplier = seasonalMultipliers.spring;  // Spring
-    else seasonMultiplier = seasonalMultipliers.fall;                                  // Fall
+    if (month >= 5 && month <= 7) seasonMultiplier = seasonalMultipliers.summer;
+    else if (month >= 11 || month <= 1) seasonMultiplier = seasonalMultipliers.winter;
+    else if (month >= 2 && month <= 4) seasonMultiplier = seasonalMultipliers.spring;
+    else seasonMultiplier = seasonalMultipliers.fall;
 
-    // Add some randomness
-    const randomVariation = 0.9 + Math.random() * 0.2; // ±10% random variation
-
+    const randomVariation = 0.9 + Math.random() * 0.2;
     const price = Math.round(basePrice * seasonMultiplier * randomVariation * styleMultiplier);
-    const displayPrice = currency === 'KRW' ? price * KRW_EXCHANGE_RATE : price;
     
     data.push({
       month: format(date, 'MMM yyyy'),
-      price: displayPrice,
+      price: price,
       isLowPrice: price < basePrice * styleMultiplier,
     });
   }
@@ -111,19 +122,24 @@ const generateFlightPriceData = (destination, currency, tripStyle = 'comfort') =
   return data;
 };
 
-const FlightPriceTrends = ({ destination, currency = 'USD', tripStyle = 'comfort' }) => {
-  const data = generateFlightPriceData(destination, currency, tripStyle);
+const FlightPriceTrends = ({ destination, fromLocation = 'Seoul', tripStyle = 'comfort' }) => {
+  const data = generateFlightPriceData(destination, fromLocation, tripStyle);
   const lowestPrice = Math.min(...data.map(d => d.price));
   const highestPrice = Math.max(...data.map(d => d.price));
+
+  const getDomainValue = (value, isMin) => {
+    const roundTo = 100;
+    return Math.round(value * (isMin ? 0.9 : 1.1) / roundTo) * roundTo;
+  };
 
   return (
     <Paper elevation={3} sx={{ p: 3, mt: 4 }}>
       <Typography variant="h6" gutterBottom>
-        Flight Price Trends for {destination}
+        Flight Price Trends: {fromLocation} → {destination}
       </Typography>
       <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
         <Typography variant="body2" color="text.secondary" gutterBottom>
-          Best time to book: {data.find(d => d.price === lowestPrice)?.month} ({formatCurrency(lowestPrice, currency)})
+          Best time to book: {data.find(d => d.price === lowestPrice)?.month} ({formatCurrency(lowestPrice)})
         </Typography>
         <Typography variant="body2" color="text.secondary">
           {TRIP_STYLES[tripStyle].label} Class Flights
@@ -136,7 +152,7 @@ const FlightPriceTrends = ({ destination, currency = 'USD', tripStyle = 'comfort
             margin={{
               top: 5,
               right: 30,
-              left: currency === 'KRW' ? 60 : 20,
+              left: 20,
               bottom: 5,
             }}
           >
@@ -151,19 +167,19 @@ const FlightPriceTrends = ({ destination, currency = 'USD', tripStyle = 'comfort
             />
             <YAxis
               domain={[
-                Math.floor(lowestPrice * 0.9 / (currency === 'KRW' ? 10000 : 100)) * (currency === 'KRW' ? 10000 : 100),
-                Math.ceil(highestPrice * 1.1 / (currency === 'KRW' ? 10000 : 100)) * (currency === 'KRW' ? 10000 : 100)
+                getDomainValue(lowestPrice, true),
+                getDomainValue(highestPrice, false)
               ]}
-              tickFormatter={(value) => formatCurrency(value, currency)}
+              tickFormatter={formatCurrency}
               label={{ 
-                value: `Price (${currency})`, 
+                value: 'Price (USD)', 
                 angle: -90, 
                 position: 'insideLeft',
                 style: { textAnchor: 'middle' }
               }}
             />
             <Tooltip
-              formatter={(value) => [formatCurrency(value, currency), 'Price']}
+              formatter={(value) => [formatCurrency(value), 'Price']}
               labelStyle={{ color: '#666' }}
             />
             <Legend />
