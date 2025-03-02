@@ -27,6 +27,66 @@ const TRIP_STYLES = {
   },
 };
 
+// Destination information including best time to travel
+const DESTINATION_INFO = {
+  'New York': {
+    bestTimeToVisit: {
+      weather: 'September to November',
+      reason: 'Fall season with mild temperatures and beautiful autumn colors',
+      peakSeason: 'Summer (June-August)',
+      lowSeason: 'January-February',
+    },
+    seasonalTips: {
+      spring: 'Mild weather, cherry blossoms in Central Park',
+      summer: 'Warm, perfect for rooftop bars and outdoor events',
+      fall: 'Pleasant temperatures, fall foliage, lower crowds',
+      winter: 'Christmas festivities, New Year celebrations',
+    }
+  },
+  'Paris': {
+    bestTimeToVisit: {
+      weather: 'April to June or September to October',
+      reason: 'Mild weather, fewer tourists, and beautiful scenery',
+      peakSeason: 'Summer (June-August)',
+      lowSeason: 'November-February',
+    },
+    seasonalTips: {
+      spring: 'Cherry blossoms, cafe culture, art exhibitions',
+      summer: 'Long days, outdoor dining, festivals',
+      fall: 'Wine harvest, cultural events, comfortable weather',
+      winter: 'Christmas markets, winter sales, fewer tourists',
+    }
+  },
+  'Tokyo': {
+    bestTimeToVisit: {
+      weather: 'March to May or September to November',
+      reason: 'Cherry blossoms in spring, autumn colors in fall',
+      peakSeason: 'Cherry blossom season (late March-April)',
+      lowSeason: 'January-February',
+    },
+    seasonalTips: {
+      spring: 'Cherry blossoms, perfect weather for sightseeing',
+      summer: 'Festivals and fireworks, but humid',
+      fall: 'Autumn colors, comfortable temperatures',
+      winter: 'New Year celebrations, winter illuminations',
+    }
+  },
+  'Seoul': {
+    bestTimeToVisit: {
+      weather: 'March to May or September to November',
+      reason: 'Mild temperatures and beautiful seasonal changes',
+      peakSeason: 'Cherry blossom season (April)',
+      lowSeason: 'Winter (December-February)',
+    },
+    seasonalTips: {
+      spring: 'Cherry blossoms, outdoor festivals',
+      summer: 'Hot and humid, but great for night markets',
+      fall: 'Autumn foliage, perfect hiking weather',
+      winter: 'Winter festivals, skiing opportunities',
+    }
+  }
+};
+
 // Base flight prices for routes (USD)
 const ROUTE_PRICES = {
   'Seoul': {
@@ -122,10 +182,20 @@ const generateFlightPriceData = (destination, fromLocation, tripStyle = 'comfort
   return data;
 };
 
+const getCurrentSeason = (month) => {
+  if (month >= 2 && month <= 4) return 'spring';
+  if (month >= 5 && month <= 7) return 'summer';
+  if (month >= 8 && month <= 10) return 'fall';
+  return 'winter';
+};
+
 const FlightPriceTrends = ({ destination, fromLocation = 'Seoul', tripStyle = 'comfort' }) => {
   const data = generateFlightPriceData(destination, fromLocation, tripStyle);
   const lowestPrice = Math.min(...data.map(d => d.price));
   const highestPrice = Math.max(...data.map(d => d.price));
+  const destinationInfo = DESTINATION_INFO[destination];
+  const currentMonth = new Date().getMonth();
+  const currentSeason = getCurrentSeason(currentMonth);
 
   const getDomainValue = (value, isMin) => {
     const roundTo = 100;
@@ -137,15 +207,56 @@ const FlightPriceTrends = ({ destination, fromLocation = 'Seoul', tripStyle = 'c
       <Typography variant="h6" gutterBottom>
         Flight Price Trends: {fromLocation} → {destination}
       </Typography>
-      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-        <Typography variant="body2" color="text.secondary" gutterBottom>
-          Best time to book: {data.find(d => d.price === lowestPrice)?.month} ({formatCurrency(lowestPrice)})
-        </Typography>
-        <Typography variant="body2" color="text.secondary">
-          {TRIP_STYLES[tripStyle].label} Class Flights
-        </Typography>
+      
+      <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2, mb: 3 }}>
+        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+          <Box>
+            <Typography variant="subtitle1" color="primary" gutterBottom>
+              Best Time to Visit {destination}
+            </Typography>
+            <Typography variant="body2">
+              🌤️ {destinationInfo.bestTimeToVisit.weather}
+            </Typography>
+            <Typography variant="body2" color="text.secondary" sx={{ mt: 1 }}>
+              {destinationInfo.bestTimeToVisit.reason}
+            </Typography>
+          </Box>
+          <Box sx={{ textAlign: 'right' }}>
+            <Typography variant="body2" color="warning.main">
+              Peak Season: {destinationInfo.bestTimeToVisit.peakSeason}
+            </Typography>
+            <Typography variant="body2" color="success.main">
+              Low Season: {destinationInfo.bestTimeToVisit.lowSeason}
+            </Typography>
+          </Box>
+        </Box>
+
+        <Box sx={{ 
+          backgroundColor: 'grey.50', 
+          p: 2, 
+          borderRadius: 1,
+          border: '1px solid',
+          borderColor: 'grey.200'
+        }}>
+          <Typography variant="subtitle2" gutterBottom>
+            Current Season ({currentSeason.charAt(0).toUpperCase() + currentSeason.slice(1)}) Tips:
+          </Typography>
+          <Typography variant="body2" color="text.secondary">
+            {destinationInfo.seasonalTips[currentSeason]}
+          </Typography>
+        </Box>
+
+        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+          <Typography variant="body2" color="text.secondary">
+            Best time to book: {data.find(d => d.price === lowestPrice)?.month} ({formatCurrency(lowestPrice)})
+          </Typography>
+          <Typography variant="body2" color="text.secondary">
+            {TRIP_STYLES[tripStyle].label} Class Flights
+          </Typography>
+        </Box>
       </Box>
-      <Box sx={{ width: '100%', height: 300, mt: 2 }}>
+
+      <Box sx={{ width: '100%', height: 300 }}>
         <ResponsiveContainer>
           <LineChart
             data={data}
@@ -195,6 +306,7 @@ const FlightPriceTrends = ({ destination, fromLocation = 'Seoul', tripStyle = 'c
           </LineChart>
         </ResponsiveContainer>
       </Box>
+      
       <Typography variant="body2" color="text.secondary" sx={{ mt: 2 }}>
         * Prices are estimates based on historical data and seasonal trends
       </Typography>
